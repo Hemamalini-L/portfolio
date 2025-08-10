@@ -1,9 +1,10 @@
+# app.py
 import streamlit as st
 from pathlib import Path
 from streamlit.components.v1 import iframe
 
 # ---------------------------
-# Basic page config
+# Page config
 # ---------------------------
 st.set_page_config(
     page_title="Hemamalini L — Portfolio",
@@ -13,39 +14,23 @@ st.set_page_config(
 )
 
 # ---------------------------
-# Helper functions
+# Helper: load resume PDF
 # ---------------------------
-def load_pdf(path: Path):
-    if path.exists():
-        return path.read_bytes()
+def load_pdf_bytes(pdf_path: Path):
+    if pdf_path.exists():
+        return pdf_path.read_bytes()
     return None
 
-def project_card(title, short_desc, tech, github_url=None, demo_url=None, imgs=None):
-    """Display a project card with optional demo iframe or link."""
-    st.subheader(title)
-    st.write(short_desc)
-    st.markdown(f"**Tech:** {tech}")
-    cols = st.columns([1, 3])
-    with cols[0]:
-        if github_url:
-            st.markdown(f"[📁 GitHub]({github_url})")
-        if demo_url:
-            st.markdown(f"[🔗 Live Demo]({demo_url})")
-        if not github_url and not demo_url:
-            st.info("No live demo / repo provided. Update the app with your links.")
-    with cols[1]:
-        # If demo_url is an embeddable app (Streamlit, HuggingFace, etc.) attempt to embed
-        if demo_url:
-            try:
-                iframe(demo_url, height=400)
-            except Exception:
-                st.write("Unable to embed the demo; open the Live Demo link above.")
-        elif imgs:
-            for img in imgs:
-                st.image(img, use_column_width=True)
+# ---------------------------
+# Replace these with your deployed project URLs
+# (If you haven't deployed yet, keep them as None or local addresses)
+# ---------------------------
+ECOCYCLE_DEMO_URL = "https://your-ecocycle-demo.streamlit.app"          # <-- REPLACE
+RESUME_SCREENING_DEMO_URL = "https://your-resume-screening.streamlit.app" # <-- REPLACE
+FAKENEWS_DEMO_URL = "https://your-fake-news-demo.streamlit.app"         # <-- REPLACE
 
 # ---------------------------
-# Sidebar - contact & resume
+# Sidebar - Contact & Resume
 # ---------------------------
 st.sidebar.title("Contact")
 st.sidebar.markdown("**Hemamalini L**  \nTiruchengode, Tamil Nadu")
@@ -53,32 +38,34 @@ st.sidebar.markdown("📧 hemamalini291204@gmail.com")
 st.sidebar.markdown("🔗 GitHub: [Hemamalini-L](https://github.com/Hemamalini-L)")
 st.sidebar.markdown("🔗 LinkedIn: [hemamalini-loganathan](https://www.linkedin.com/in/hemamalini-loganathan-60b4a02a1)")
 
-# Attempt to load resume file (place the PDF next to app.py)
-resume_path = Path("Hemamalini_Resume_Updated.pdf")
-pdf_bytes = load_pdf(resume_path)
+# Resume download button (place the PDF next to this app)
+resume_file = Path("Hemamalini_Resume_Updated.pdf")
+pdf_bytes = load_pdf_bytes(resume_file)
 if pdf_bytes:
     st.sidebar.download_button(
         label="📄 Download Resume (PDF)",
         data=pdf_bytes,
         file_name="Hemamalini_Resume_Updated.pdf",
-        mime="application/pdf"
+        mime="application/pdf",
     )
 else:
-    st.sidebar.info("Place 'Hemamalini_Resume_Updated.pdf' in the app folder to enable PDF download.")
+    st.sidebar.info("Place 'Hemamalini_Resume_Updated.pdf' in the app folder to enable resume download.")
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("🔧 Want help deploying? Ask me!")
+st.sidebar.markdown("📝 Tip: Update the demo URLs at the top of `app.py` with your deployed app links.")
+st.sidebar.markdown("---")
 
 # ---------------------------
-# Main page - Header
+# Header / Hero section
 # ---------------------------
 col1, col2 = st.columns([3, 1])
 with col1:
     st.title("Hemamalini L")
-    st.write("Aspiring AI & Data Science enthusiast — projects: EcoCycle, Fake News Detection, AI Resume Screening.")
-    st.write("**Email:** hemamalini291204@gmail.com  •  **GitHub:** Hemamalini-L")
+    st.write("Aspiring AI & Data Science enthusiast — building ML solutions and deploying interactive demos.")
+    st.write("**Email:** hemamalini291204@gmail.com  •  **GitHub:** [Hemamalini-L](https://github.com/Hemamalini-L)")
 with col2:
-    st.image("https://avatars.githubusercontent.com/Hemamalini-L", width=120)  # fallback to GitHub avatar (if public)
+    # Try to show GitHub avatar (if public). If not found, it's fine.
+    st.image("https://avatars.githubusercontent.com/Hemamalini-L", width=110)
 
 st.markdown("---")
 
@@ -87,78 +74,111 @@ st.markdown("---")
 # ---------------------------
 st.header("Summary")
 st.write(
-    "Aspiring AI and Data Science enthusiast seeking internships or roles in AI/ML domains. "
-    "Experienced with building ML pipelines, deploying Streamlit demos, and designing real-world solutions."
+    "Aspiring AI and Data Science enthusiast seeking internships/roles in AI/ML. "
+    "Experience in building ML pipelines, NLP systems, and deploying Streamlit demos for live demonstrations."
 )
 
 st.header("Experience")
-st.subheader("AI Intern - Lead Scoring System (Infosys Springboard) — Nov 2024 - Feb 2025")
+st.subheader("AI Intern — Lead Scoring System (Infosys Springboard)")
+st.write("Nov 2024 - Feb 2025")
 st.markdown("- Implemented an AI-powered B2B lead scoring and account-based marketing model.")
 
-st.subheader("AI Intern - Resume Screening System (AICTE – Edunet Techsakhsham) — Jan 2025 - Mar 2025")
-st.markdown("- Created an NLP-based ranking model to automate resume evaluation.")
+st.subheader("AI Intern — Resume Screening System (AICTE – Edunet Techsakhsham)")
+st.write("Jan 2025 - Mar 2025")
+st.markdown("- Built an NLP-based resume ranking system and Streamlit dashboard for visualization.")
 
 st.markdown("---")
 
 # ---------------------------
-# Projects - replace demo_url/github_url with your actual links
+# Projects section (embedded demos)
 # ---------------------------
-st.header("Projects (Live Demos)")
+st.header("Projects — Live Demonstrations")
 
-# Project 1: EcoCycle
-project_card(
-    title="EcoCycle — Smart Cycle Sharing System",
-    short_desc=(
+def show_project(title, description, demo_url=None, github_url=None, height=650):
+    st.subheader(title)
+    st.write(description)
+    cols = st.columns([1, 4])
+    with cols[0]:
+        if github_url:
+            st.markdown(f"[📁 GitHub]({github_url})")
+        if demo_url:
+            st.markdown(f"[🔗 Open Live Demo]({demo_url})")
+        if not github_url and not demo_url:
+            st.info("No link provided — update `app.py` with your repo/demo URL.")
+    with cols[1]:
+        if demo_url:
+            # Attempt to embed the demo inside an iframe
+            try:
+                iframe(demo_url, height=height)
+            except Exception:
+                st.write("Embedding failed — click the Live Demo link above to open in a new tab.")
+        else:
+            st.info("Demo URL not set. Replace the placeholder in app.py with your deployed Streamlit URL.")
+
+# Project: EcoCycle
+show_project(
+    title="🚲 EcoCycle — Smart Cycle Sharing System",
+    description=(
         "A Streamlit app for smart cycle sharing with route optimization, booking system, accessibility features "
-        "for differently-abled users, and emergency alerts."
+        "for differently-abled users, and emergency alerts. Demo includes interactive route booking and map visualization."
     ),
-    tech="Python • Streamlit • React (frontend idea) • Simple routing algorithms",
-    github_url="https://github.com/Hemamalini-L/EcoCycle-AI",       # update if repo path differs
-    demo_url="https://your-ecocycle-demo-url.streamlitapp.com"      # <-- REPLACE with your deployed Streamlit URL
+    demo_url=ECOCYCLE_DEMO_URL,
+    github_url="https://github.com/Hemamalini-L/EcoCycle-AI",
+    height=600
 )
 
 st.markdown("---")
 
-# Project 2: Fake News Detection
-project_card(
-    title="Fake News Detection System",
-    short_desc=(
-        "A classification pipeline using TF-IDF + Logistic Regression / SVM / Random Forest. "
-        "Deployed a Streamlit demo for uploading text and seeing predictions."
+# Project: Resume Screening
+show_project(
+    title="📄 AI Resume Screening & Candidate Ranking",
+    description=(
+        "Upload resumes and a job description (JD). The app parses resumes, extracts features, and ranks candidates "
+        "based on relevance to the JD. Interactive dashboard shows scores and explanations."
     ),
-    tech="Python • scikit-learn • TF-IDF • Streamlit",
-    github_url="https://github.com/Hemamalini-L/fake-news-detection", # update repo link
-    demo_url="https://your-fake-news-demo.streamlitapp.com"            # <-- REPLACE with your deployed Streamlit URL
+    demo_url=RESUME_SCREENING_DEMO_URL,
+    github_url="https://github.com/Hemamalini-L/AI-Resume-Screening",
+    height=650
 )
 
 st.markdown("---")
 
-# Project 3: AI Resume Screening and Candidate Ranking
-project_card(
-    title="AI Resume Screening & Candidate Ranking",
-    short_desc=(
-        "NLP pipeline to parse resumes, extract features, and rank candidates. Includes Streamlit dashboard visualizations."
+# Project: Fake News Detection
+show_project(
+    title="📰 Fake News Detection System",
+    description=(
+        "Text classification pipeline using TF-IDF and classifiers (Logistic Regression / SVM / Random Forest). "
+        "Streamlit demo accepts text input and returns prediction + confidence."
     ),
-    tech="Python • spaCy/NLTK • scikit-learn • Streamlit • pandas",
-    github_url="https://github.com/Hemamalini-L/AI-Resume-Screening",   # update repo link
-    demo_url="https://your-resume-screening-demo.streamlitapp.com"       # <-- REPLACE with your deployed Streamlit URL
+    demo_url=FAKENEWS_DEMO_URL,
+    github_url="https://github.com/Hemamalini-L/fake-news-detection",
+    height=600
 )
 
 st.markdown("---")
 
 # ---------------------------
-# Skills, Education, Awards
+# Skills (as requested)
 # ---------------------------
 st.header("Skills")
-st.write(
-    "- **Languages:** Python, C++, Java (basics)\n"
-    "- **Libraries:** NumPy, Pandas, scikit-learn, Matplotlib, Seaborn\n"
-    "- **Tools:** Git, Streamlit, Docker (optional), TensorFlow/PyTorch (optional)\n"
-    "- **Areas:** Supervised Learning, NLP, EDA, Model Evaluation, Deployment"
-)
 
+st.subheader("Languages")
+st.write("- Python\n- C++")
+
+st.subheader("Tools")
+st.write("- Git\n- Streamlit")
+
+st.subheader("Areas of Expertise")
+st.write("- Supervised Learning\n- NLP (Natural Language Processing)\n- EDA (Exploratory Data Analysis)\n- Model Evaluation\n- Deployment")
+
+st.markdown("---")
+
+# ---------------------------
+# Education & Awards
+# ---------------------------
 st.header("Education")
-st.write("**B.Tech — Artificial Intelligence and Data Science**  \nVivekanandha College of Technology for Women (Anna University) — Current (8.5 CGPA)")
+st.write("**B.Tech — Artificial Intelligence and Data Science**")
+st.write("Vivekanandha College of Technology for Women (Anna University) — Current (8.5 CGPA)")
 
 st.header("Awards & Honors")
 st.write(
@@ -170,24 +190,23 @@ st.write(
 st.markdown("---")
 
 # ---------------------------
-# Live demo tips and admin panel
+# Presenter notes & Tips (useful for live demo)
 # ---------------------------
-st.subheader("How to use this app for a live demo (presenter notes)")
-st.markdown("""
-1. **Open each project's Live Demo link** (or embedded iframe) to show a working app.
-2. If embedding fails, click the *Live Demo* link to open the deployed Streamlit app in a new tab.
-3. For local demos, run those Streamlit apps on your machine and replace `demo_url` with `http://localhost:8501` (or the port you use).
-4. To make the demos embeddable, deploy each project to Streamlit Cloud, Hugging Face Spaces, or a VPS.
-""")
+st.subheader("Presenter Notes — How to Demo Live")
+st.markdown(
+    """
+- Make sure each project is **deployed** to Streamlit Cloud (or Hugging Face Spaces) and is **public**.
+- Replace the `ECOCYCLE_DEMO_URL`, `RESUME_SCREENING_DEMO_URL`, and `FAKENEWS_DEMO_URL` variables at the top of `app.py` with the deployed URLs.
+- If embedding does not work due to headers or embedding policy, open the demo in a new tab using the Live Demo links.
+- For local demos during interviews: run your project locally (e.g., `streamlit run app.py` for each project) and set the demo_url to `http://localhost:8501` (or the appropriate port). Then run the portfolio and present on the same machine.
+- Keep sample resumes and JDs ready in a folder to quickly upload during the resume screening demo.
+"""
+)
 
 st.markdown("---")
 
 # ---------------------------
 # Footer / Contact CTA
 # ---------------------------
-st.write("Want this deployed for you or need help updating the repo links? ")
-if st.button("📩 Email Hemamalini"):
-    st.write("Click the email link below to contact:")
-    st.markdown("[Send Email](mailto:hemamalini291204@gmail.com)")
-
-st.caption("Portfolio generated with Streamlit • Edit app.py to customize text, links, and visuals.")
+st.write("💬 Want me to deploy these for you step-by-step? I can provide exact copy-paste commands to push and deploy to Streamlit Cloud.")
+st.caption("Portfolio generated with Streamlit — edit `app.py` to customize text, links, and visuals.")
